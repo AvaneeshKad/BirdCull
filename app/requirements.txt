@@ -1,0 +1,7 @@
+# torch + torchvision are installed separately from the CUDA 12.8 index (needed for RTX 50-series GPUs)
+ultralytics==8.4.215
+rawpy
+opencv-python-headless
+numpy
+exifread
+send2trash

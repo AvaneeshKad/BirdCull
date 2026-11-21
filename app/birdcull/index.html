@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BirdCull</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--panel2:#eef0f3;--line:#d9dce2;--txt:#1b1e24;--mut:#667085;--acc:#15803d;--warn:#d97706;--bad:#dc2626;--blue:#2563eb;--ts:240px}
+@media (prefers-color-scheme:dark){:root{--bg:#14161a;--panel:#1c1f25;--panel2:#242830;--line:#2e333c;--txt:#e8eaed;--mut:#9aa1ad;--acc:#22c55e}}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);padding:10px 18px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+h1{font-size:18px;margin:0}.steps{display:flex;gap:8px;margin-left:12px}
+.step{border:1px solid var(--line);background:var(--panel2);color:var(--txt);border-radius:99px;padding:6px 16px;cursor:pointer;font:inherit}
+.step.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:650}
+.btn{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 16px;font:inherit;cursor:pointer}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:650}.btn.dan{background:var(--bad);border-color:var(--bad);color:#fff;font-weight:650}.btn:disabled{opacity:.5;cursor:not-allowed}
+.page{display:none;padding:20px 18px 80px;max-width:1500px;margin:0 auto}.page.on{display:block}
+.card0{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px;max-width:880px}
+.card0 h2{margin:0 0 6px;font-size:17px}.mut{color:var(--mut)}
+.dirs{border:1px solid var(--line);border-radius:10px;max-height:240px;overflow:auto;background:var(--panel2)}
+.dirs div{padding:7px 12px;cursor:pointer;border-bottom:1px solid var(--line)}.dirs div:hover{background:var(--line)}
+.path{font-family:ui-monospace,Consolas,monospace;font-size:13px;word-break:break-all;margin:8px 0}
+.tag{display:inline-flex;gap:8px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:3px 6px 3px 12px;margin:3px 6px 3px 0;font-size:13px}
+.tag b{cursor:pointer;color:var(--bad);padding:0 6px}
+.prog{height:14px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:10px 0}.prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .4s}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.bar2{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.chip{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}.chip small{opacity:.7;margin-left:4px}
+select{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 10px;font:inherit;max-width:300px}
+.fh{display:flex;align-items:center;gap:10px;margin:20px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}.fh h3{font-size:13px;margin:0;word-break:break-all}.fh span{color:var(--mut);white-space:nowrap}
+.fh .btn{margin-left:auto;font-size:12px;padding:4px 10px;white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--ts),1fr));gap:10px}
+.card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:zoom-in;transition:opacity .25s,transform .25s}
+.card.gone{opacity:0;transform:scale(.92);pointer-events:none}.card .im{aspect-ratio:3/2;background:#0b0c0e;display:block;width:100%;object-fit:contain}
+.meta{padding:6px 9px 8px}.nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sub{color:var(--mut);font-size:12px}
+.badge{position:absolute;top:7px;left:7px;font-size:11px;padding:2px 8px;border-radius:99px;color:#fff;background:rgba(80,80,90,.85)}.badge.b{background:rgba(217,119,6,.92)}.badge.u{background:rgba(37,99,235,.9)}
+.keep{position:absolute;top:7px;right:7px;opacity:0;transition:.15s;background:var(--acc);color:#fff;border:0;border-radius:8px;padding:6px 11px;font-weight:650;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.keep.undo{background:var(--warn)}.rot{position:absolute;right:7px;bottom:46px;opacity:0;transition:.15s;display:flex;gap:4px}
+.rot button{background:rgba(0,0,0,.7);color:#fff;border:0;border-radius:8px;width:32px;height:30px;cursor:pointer;font-size:16px}
+.card:hover .keep,.card:hover .rot{opacity:1}@media (hover:none){.keep,.rot{opacity:1}}
+.empty{text-align:center;color:var(--mut);padding:70px 0;font-size:17px}
+.big{font-size:30px;font-weight:700}.warnbox{background:rgba(217,119,6,.12);border:1px solid var(--warn);border-radius:10px;padding:10px 14px;margin:12px 0}
+#lb{position:fixed;inset:0;background:rgba(8,9,11,.96);z-index:50;display:none;flex-direction:column}#lb.open{display:flex}
+#lb .top{display:flex;gap:12px;align-items:center;padding:10px 16px;color:#ddd;flex-wrap:wrap}.t1{font-weight:650;color:#fff}.t2{color:#9aa1ad;font-size:13px;word-break:break-all}
+#lb .stage{flex:1;min-height:0;overflow:auto;display:flex;align-items:center;justify-content:center;position:relative}
+#lb img{max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in}#lb.zoom .stage{align-items:flex-start;justify-content:flex-start}#lb.zoom img{max-width:none;max-height:none;cursor:zoom-out}
+#lb .bot{display:flex;gap:10px;justify-content:center;padding:12px;flex-wrap:wrap}#lb .btn{font-size:15px;color:#e8eaed;background:#262a32;border-color:#3a404b}#lb .btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}#lb .btn.w{background:var(--warn);border-color:var(--warn);color:#fff}
+.nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.45);color:#fff;border:0;font-size:28px;width:48px;height:80px;cursor:pointer;border-radius:8px;z-index:3}.nav.l{left:8px}.nav.r{right:8px}
+.hint{color:#8b93a1;font-size:12px;text-align:center;padding-bottom:8px}kbd{background:#2b3039;border:1px solid #3a404b;border-radius:4px;padding:0 5px;font-size:11px;color:#ddd}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);opacity:0;background:#262a32;color:#fff;border-radius:10px;padding:10px 14px;z-index:60;display:flex;gap:14px;align-items:center;transition:.25s;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%);pointer-events:auto}#toast button{background:none;border:0;color:#fbbf24;font-weight:700;cursor:pointer}
+input[type=text]{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:9px 12px;font:inherit;width:140px}
+</style></head><body>
+<header><h1>🪶 BirdCull</h1>
+<div class="steps"><button class="step on" data-p="p1">1 · Scan</button><button class="step" data-p="p2">2 · Review</button><button class="step" data-p="p3">3 · Finish</button></div></header>
+
+<div class="page on" id="p1">
+ <div class="card0"><h2>Step 1 — Choose the folder with your bird photos</h2>
+  <div class="mut">Click folders to open them, then press “Use this folder”. Photos are only <b>read</b> in this step — nothing is changed or deleted.</div>
+  <div class="path" id="curPath"></div>
+  <div class="row"><button class="btn" id="up">⬆ Up</button><button class="btn pri" id="useDir">Use this folder</button><button class="btn" id="favDir" title="Optional: a folder you have already picked through by hand — the app will make sure it never suggests photos as sharp as these">Mark as “my best photos” (optional)</button></div>
+  <div class="dirs" id="dirs" style="margin-top:10px"></div>
+  <div style="margin-top:12px"><b>Folders to scan:</b> <span id="roots" class="mut">none yet</span></div>
+  <div><b>My best photos (never touched):</b> <span id="favs" class="mut">none</span></div>
+ </div>
+ <div class="card0"><h2>Scan</h2>
+  <div class="mut">The scan looks at every photo with an AI bird detector. It can take a long time on a large library (leave the laptop plugged in; it can run overnight). If you close the window, press Start again later — it continues where it stopped.</div>
+  <div class="prog"><i id="prog"></i></div><div id="scanMsg" class="mut">Not started.</div>
+  <div class="row"><button class="btn pri" id="start">▶ Start scan</button><button class="btn" id="pause">⏸ Pause</button><button class="btn pri" id="suggest" style="display:none">Find photos to remove →</button></div>
+ </div>
+</div>
+
+<div class="page" id="p2">
+ <div class="bar2"><b id="nLeft">–</b> <span class="mut">photos suggested for removal ·</span> <b id="nKept">0</b> <span class="mut">you chose to keep</span>
+  <div id="chips" style="display:flex;gap:6px;flex-wrap:wrap"></div><select id="folderSel"></select>
+  <label class="mut" style="margin-left:auto">Size <input id="size" type="range" min="130" max="520" value="240"></label></div>
+ <div class="mut" style="margin-bottom:6px">These are photos the app <b>suggests</b> removing. Look through them and press <b>✓ Keep</b> on any you want to save. Nothing is deleted until Step 3.</div>
+ <div id="main"></div>
+</div>
+
+<div class="page" id="p3">
+ <div class="card0"><h2>Step 3 — Remove the suggested photos</h2>
+  <div class="big" id="sumBig">–</div><div class="mut" id="sumSub"></div>
+  <div class="warnbox">✓ Photos you pressed <b>Keep</b> on stay exactly where they are, together with everything the app did not suggest.</div>
+ </div>
+ <div class="card0"><h2>Safe option: move to the Recycle Bin</h2><div class="mut">You can restore them from the Recycle Bin if you change your mind. Disk space is only freed once the Recycle Bin is emptied.</div>
+  <div class="row"><button class="btn pri" id="doRecycle">Move to Recycle Bin</button></div></div>
+ <div class="card0"><h2>Free the space now: delete for good</h2><div class="mut">Permanent. These photos cannot be brought back — there is no backup copy unless you made one yourself.</div>
+  <div class="row"><input type="text" id="typed" placeholder="type DELETE"><button class="btn dan" id="doPerm">Delete for good</button></div></div>
+ <div class="card0" id="result" style="display:none"></div>
+</div>
+
+<div id="lb"><div class="top"><span class="t1" id="lbName"></span><span class="t2" id="lbInfo"></span><span style="margin-left:auto" class="t2" id="lbPos"></span><button class="btn" id="lbClose">✕ Close</button></div>
+ <div class="stage"><button class="nav l" id="prev">‹</button><img id="lbImg" alt=""><button class="nav r" id="next">›</button></div>
+ <div class="bot"><button class="btn" id="bPrev">← Prev</button><button class="btn" id="rotL">⟲</button><button class="btn pri" id="bKeep">✓ Keep this photo (K)</button><button class="btn w" id="bUn" style="display:none">↩ Suggest removing again</button><button class="btn" id="rotR">⟳</button><button class="btn" id="bNext">Next →</button></div>
+ <div class="hint"><kbd>←</kbd><kbd>→</kbd> browse · <kbd>K</kbd> keep · <kbd>R</kbd> rotate · <kbd>Z</kbd> or click: zoom to 100% · <kbd>Esc</kbd> close</div></div>
+<div id="toast"><span id="tmsg"></span><button id="tundo">Undo</button></div>
+
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const J=async(u,b)=>{const r=await fetch(u,b===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return r.json()};
+function go(p){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('on',x.id===p));document.querySelectorAll('.step').forEach(x=>x.classList.toggle('on',x.dataset.p===p));
+  if(p==='p2')loadItems();if(p==='p3')poll();}
+document.querySelectorAll('.step').forEach(b=>b.onclick=()=>go(b.dataset.p));
+/* ---- step 1 ---- */
+let roots=[],favs=[],cwd='',parent='';
+async function browse(p){const r=await J('/api/ls?path='+encodeURIComponent(p||''));cwd=r.path;parent=r.parent;$('#curPath').textContent=cwd||'(choose a drive)';
+  $('#dirs').innerHTML=r.dirs.map(d=>`<div data-p="${esc(d.path)}">📁 ${esc(d.name)}</div>`).join('')||'<div class="mut">No sub-folders</div>';}
+$('#dirs').onclick=e=>{const d=e.target.closest('[data-p]');if(d)browse(d.dataset.p)};$('#up').onclick=()=>browse(parent);
+function tags(a,id){$(id).innerHTML=a.length?a.map((x,i)=>`<span class="tag">${esc(x)}<b data-i="${i}">✕</b></span>`).join(''):'none';}
+$('#useDir').onclick=()=>{if(cwd&&!roots.includes(cwd)){roots.push(cwd);tags(roots,'#roots')}};$('#favDir').onclick=()=>{if(cwd&&!favs.includes(cwd)){favs.push(cwd);tags(favs,'#favs')}};
+$('#roots').onclick=e=>{const b=e.target.closest('b');if(b){roots.splice(+b.dataset.i,1);tags(roots,'#roots')}};$('#favs').onclick=e=>{const b=e.target.closest('b');if(b){favs.splice(+b.dataset.i,1);tags(favs,'#favs')}};
+$('#start').onclick=async()=>{const r=await J('/api/scan/start',{roots,favourites:favs});if(r.error)alert(r.error);poll()};
+$('#pause').onclick=()=>J('/api/scan/stop',{});
+$('#suggest').onclick=async()=>{$('#suggest').disabled=true;$('#suggest').textContent='Working…';const r=await J('/api/suggest',{});$('#suggest').disabled=false;$('#suggest').textContent='Find photos to remove →';if(r.error)return alert(r.error);go('p2')};
+let first=true;
+async function poll(){const s=await J('/api/state');const sc=s.scan;
+  if(first){first=false;roots=s.settings.roots||[];favs=s.settings.favourites||[];tags(roots,'#roots');tags(favs,'#favs');if(s.n_items)$('#suggest').style.display=''}
+  const pct=sc.total?100*sc.done/sc.total:0;$('#prog').style.width=pct+'%';
+  let m=({idle:'Not started.',listing:'Looking for photos…',loading:'Loading the AI model (first time takes a minute)…',running:`Scanning: ${sc.done.toLocaleString()} of ${sc.total.toLocaleString()} photos (${pct.toFixed(0)}%)`+(sc.eta_min?` · about ${sc.eta_min>90?(sc.eta_min/60).toFixed(1)+' hours':sc.eta_min+' min'} left`:'')+` · ${sc.device}`,paused:'Paused. Press Start to continue.',done:`Scan complete — ${sc.total.toLocaleString()} photos looked at.`,error:'Problem: '+sc.error})[sc.state]||sc.state;
+  $('#scanMsg').textContent=m;if(sc.state==='done')$('#suggest').style.display='';
+  const sm=s.summary;$('#sumBig').textContent=`${sm.photos.toLocaleString()} photos · ${(sm.bytes/1e9).toFixed(1)} GB`;
+  $('#sumSub').textContent=`will be removed (${sm.files.toLocaleString()} files including RAW/JPG pairs). You are keeping ${sm.kept} that were suggested.`;
+  $('#nKept').textContent=sm.kept;
+  clearTimeout(poll.t);if(['running','loading','listing'].includes(sc.state)||$('#p3').classList.contains('on'))poll.t=setTimeout(poll,2000)}
+/* ---- step 2 ---- */
+let items=[],cat=null,folder='',undo=[],cur=-1,list=[],tT;
+const cc={'Blurry bird':'b','Burst extra':'u','No bird found':''};
+async function loadItems(){items=(await J('/api/items')).items;const fs=[...new Set(items.map(i=>i.folder))].sort();
+  $('#folderSel').innerHTML='<option value="">All folders ('+fs.length+')</option>'+fs.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join('');render()}
+const vis=()=>items.filter(i=>!i.kept&&(!cat||i.cat===cat)&&(!folder||i.folder===folder));
+function stats(){const left=items.filter(i=>!i.kept).length;$('#nLeft').textContent=left.toLocaleString();$('#nKept').textContent=items.filter(i=>i.kept).length;
+  const base=items.filter(i=>!i.kept&&(!folder||i.folder===folder)),cats=[...new Set(items.map(i=>i.cat))];
+  $('#chips').innerHTML=cats.map(c=>`<button class="chip ${cat===c?'on':''}" data-c="${c}">${c}<small>${base.filter(i=>i.cat===c).length}</small></button>`).join('')}
+function render(){stats();list=vis();const m=$('#main');m.innerHTML='';
+  if(!list.length){m.innerHTML='<div class="empty">'+(items.length?'🎉 You have looked at everything. Go to Step 3 when ready.':'No suggestions yet — finish Step 1 first.')+'</div>';return}
+  let last=null,g;for(const it of list){if(it.folder!==last){last=it.folder;const n=list.filter(x=>x.folder===it.folder).length;const h=document.createElement('div');h.className='fh';
+    h.innerHTML=`<h3>${esc(it.folder)}</h3><span>${n} photo${n>1?'s':''}</span><button class="btn" data-ka="${esc(it.folder)}">Keep all ${n}</button>`;m.appendChild(h);g=document.createElement('div');g.className='grid';m.appendChild(g)}
+    g.appendChild(card(it))}}
+const src=(k,it)=>`/${k}/${it.id}?r=${it.rot}`;
+function card(it){const d=document.createElement('div');d.className='card';d.dataset.id=it.id;
+  d.innerHTML=`<img class="im" loading="lazy" src="${src('thumb',it)}"><span class="badge ${cc[it.cat]}">${esc(it.cat)}</span><button class="keep">✓ Keep</button>
+  <div class="rot"><button data-rot="-90">⟲</button><button data-rot="90">⟳</button></div><div class="meta"><div class="nm">${esc(it.name)}${it.files>1?' <span class="sub">+'+(it.files-1)+'</span>':''}</div><div class="sub">${esc(it.reason)}</div></div>`;return d}
+async function setKeep(it,k,lb){await J(`/api/${k?'keep':'unkeep'}/${it.id}`,{});it.kept=k;undo.push({id:it.id,k});
+  const el=document.querySelector(`.card[data-id="${it.id}"]`);if(el){el.classList.add('gone');setTimeout(()=>{const g=el.parentElement;el.remove();if(g&&!g.children.length){const h=g.previousElementSibling;g.remove();h&&h.remove()}if(!document.querySelector('.card'))render()},250)}
+  stats();toast(k?`Kept ${it.name} — it will not be removed`:'Back on the removal list',true);
+  if(lb){const n=list.findIndex(x=>x.id===it.id);list=list.filter(x=>x.id!==it.id);if(!list.length)closeLb();else show(Math.min(n,list.length-1))}}
+async function undoLast(){const u=undo.pop();if(!u)return;const it=items[u.id];await J(`/api/${u.k?'unkeep':'keep'}/${it.id}`,{});it.kept=!u.k;render();if($('#lb').classList.contains('open')){list=vis();list.length?show(0):closeLb()}toast('Undone')}
+async function rotate(it,d){const r=await J(`/api/rot/${it.id}/${d}`,{});it.rot=r.rot;const e=document.querySelector(`.card[data-id="${it.id}"] .im`);if(e)e.src=src('thumb',it);if($('#lb').classList.contains('open')&&list[cur]&&list[cur].id===it.id)show(cur,true)}
+function toast(t,u){$('#tmsg').textContent=t;$('#tundo').style.display=u?'':'none';$('#toast').classList.add('show');clearTimeout(tT);tT=setTimeout(()=>$('#toast').classList.remove('show'),4500)}$('#tundo').onclick=undoLast;
+function show(i,kz){cur=i;const it=list[i];if(!it)return;if(!kz)$('#lb').classList.remove('zoom');$('#lbImg').src=src('thumb',it);const b=new Image();b.onload=()=>{if(list[cur]&&list[cur].id===it.id)$('#lbImg').src=b.src};b.src=src('full',it);
+  $('#lbName').textContent=it.name;$('#lbInfo').textContent=`${it.folder} · ${it.cat} · ${it.reason}`;$('#lbPos').textContent=`${i+1} / ${list.length}`}
+function openLb(id){cur=list.findIndex(x=>x.id==id);$('#lb').classList.add('open');document.body.style.overflow='hidden';show(cur)}
+function closeLb(){$('#lb').classList.remove('open');document.body.style.overflow=''}
+const step=d=>{if(list.length)show((cur+d+list.length)%list.length)};
+$('#lbClose').onclick=closeLb;$('#prev').onclick=$('#bPrev').onclick=()=>step(-1);$('#next').onclick=$('#bNext').onclick=()=>step(1);
+$('#bKeep').onclick=()=>setKeep(list[cur],true,true);$('#rotL').onclick=()=>rotate(list[cur],-90);$('#rotR').onclick=()=>rotate(list[cur],90);$('#lbImg').onclick=()=>$('#lb').classList.toggle('zoom');
+document.addEventListener('keydown',e=>{if(['SELECT','INPUT'].includes(e.target.tagName)||!$('#lb').classList.contains('open'))return;
+  if(e.key==='Escape')closeLb();else if(e.key==='ArrowRight')step(1);else if(e.key==='ArrowLeft')step(-1);else if(['k','K','Enter'].includes(e.key)){e.preventDefault();setKeep(list[cur],true,true)}
+  else if(e.key==='r')rotate(list[cur],90);else if(e.key==='R')rotate(list[cur],-90);else if(e.key==='z'||e.key==='Z')$('#lb').classList.toggle('zoom');else if(e.key==='u'||e.key==='U')undoLast()});
+$('#main').addEventListener('click',e=>{const ka=e.target.closest('[data-ka]');
+  if(ka){const g=list.filter(x=>x.folder===ka.dataset.ka);if(confirm(`Keep ALL ${g.length} photos from this folder (none of them will be removed)?`))(async()=>{for(const it of g)await setKeep(it,true)})();return}
+  const c=e.target.closest('.card');if(!c)return;const it=items[c.dataset.id],r=e.target.closest('[data-rot]');if(r)return rotate(it,+r.dataset.rot);
+  if(e.target.closest('.keep'))setKeep(it,true);else openLb(it.id)});
+$('#chips').onclick=e=>{const b=e.target.closest('.chip');if(b){cat=cat===b.dataset.c?null:b.dataset.c;render()}};
+$('#folderSel').onchange=e=>{folder=e.target.value;render()};$('#size').oninput=e=>document.documentElement.style.setProperty('--ts',e.target.value+'px');
+/* ---- step 3 ---- */
+async function fin(mode){const s=(await J('/api/state')).summary;if(!s.photos)return alert('Nothing to remove.');
+  const body={mode,confirm:true,typed:$('#typed').value};
+  if(mode==='recycle'&&!confirm(`Move ${s.photos} photos (${(s.bytes/1e9).toFixed(1)} GB) to the Recycle Bin?`))return;
+  if(mode==='permanent'&&!confirm(`DELETE FOR GOOD ${s.photos} photos (${(s.bytes/1e9).toFixed(1)} GB)?\n\nThis cannot be undone.`))return;
+  const r=await J('/api/finish',body),b=$('#result');b.style.display='';
+  b.innerHTML=r.error?`<b style="color:var(--bad)">${esc(r.error)}</b>`:`<h2>Done ✓</h2><div>${r.deleted.toLocaleString()} files ${mode==='recycle'?'moved to the Recycle Bin':'deleted'} (${(r.bytes/1e9).toFixed(1)} GB).${r.failed?` <b>${r.failed} could not be removed.</b>`:''}</div><div class="mut">A record was saved to ${esc(r.log)}</div>`;poll()}
+$('#doRecycle').onclick=()=>fin('recycle');$('#doPerm').onclick=()=>fin('permanent');
+browse('');poll();
+if(/^#p[123]$/.test(location.hash))go(location.hash.slice(1));
+</script></body></html>

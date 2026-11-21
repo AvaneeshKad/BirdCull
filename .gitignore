@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.~lock.*
+*.zip
+models/
+.venv/
+scans/
+plan.csv
+moves_*.csv
+force_delete.txt
+never_delete_stems.txt
+review2/cache/
+review2/*.log
+review2/rotations.json
+review2/review_actions.csv
+LOG.md
+BIRD_TASK.md

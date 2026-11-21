@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blurry & Duplicates Review</title>
+<style>
+:root{--bg:#14161a;--panel:#1c1f25;--panel2:#242830;--line:#2e333c;--txt:#e8eaed;--mut:#9aa1ad;--acc2:#22c55e;--warn:#f59e0b;--blue:#3b82f6;--ts:240px}
+@media (prefers-color-scheme:light){:root{--bg:#f3f4f6;--panel:#fff;--panel2:#eef0f3;--line:#d9dce2;--txt:#1b1e24;--mut:#667085;--acc2:#15803d}}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+h1{font-size:16px;margin:0;font-weight:650}.stat{color:var(--mut)}.stat b{color:var(--txt)}
+.bar{flex:1 1 140px;min-width:100px;max-width:260px;height:8px;background:var(--panel2);border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc2);width:0;transition:width .3s}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip,.seg button,select,.btn{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 11px;font:inherit;cursor:pointer}
+.chip.on{background:var(--acc2);border-color:var(--acc2);color:#fff}.chip small{opacity:.75;margin-left:4px}
+.seg{display:inline-flex}.seg button{border-radius:0}.seg button:first-child{border-radius:8px 0 0 8px}.seg button:last-child{border-radius:0 8px 8px 0;border-left:0}
+.seg button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+select{max-width:260px}.right{margin-left:auto}input[type=range]{width:110px}
+main{padding:8px 16px 80px}
+.fh{display:flex;align-items:center;gap:10px;margin:22px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.fh h2{font-size:13px;margin:0;font-weight:600;word-break:break-all}.fh span{color:var(--mut);white-space:nowrap}
+.fh .btn{margin-left:auto;font-size:12px;padding:4px 9px;white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--ts),1fr));gap:10px}
+.card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:zoom-in;transition:opacity .25s,transform .25s}
+.card.gone{opacity:0;transform:scale(.92);pointer-events:none}
+.card .im{aspect-ratio:3/2;background:#0b0c0e;display:block;width:100%;object-fit:contain}
+.card .meta{padding:6px 9px 8px}.card .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sub{color:var(--mut);font-size:11px}
+.badge{position:absolute;top:7px;left:7px;font-size:11px;padding:2px 7px;border-radius:99px;color:#fff}.badge.bl{background:rgba(217,119,6,.9)}.badge.du{background:rgba(37,99,235,.9)}
+.keep{position:absolute;top:7px;right:7px;opacity:0;transition:opacity .15s;background:var(--acc2);color:#fff;border:0;border-radius:8px;padding:6px 11px;font-weight:650;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.keep.undo{background:var(--warn)}
+.rot{position:absolute;right:7px;bottom:46px;opacity:0;transition:opacity .15s;display:flex;gap:4px}
+.rot button{background:rgba(0,0,0,.7);color:#fff;border:0;border-radius:8px;width:32px;height:30px;cursor:pointer;font-size:16px}
+.card:hover .keep,.card:hover .rot{opacity:1}@media (hover:none){.keep,.rot{opacity:1}}
+.empty{text-align:center;color:var(--mut);padding:80px 0;font-size:16px}
+#lb{position:fixed;inset:0;background:rgba(8,9,11,.96);z-index:50;display:none;flex-direction:column}#lb.open{display:flex}
+#lb .top{display:flex;gap:12px;align-items:center;padding:10px 16px;color:#ddd;flex-wrap:wrap}.t1{font-weight:650;color:#fff}.t2{color:#9aa1ad;font-size:13px;word-break:break-all}
+#lb .stage{flex:1;min-height:0;overflow:auto;display:flex;align-items:center;justify-content:center;position:relative}
+#lb img{max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in}
+#lb.zoom .stage{align-items:flex-start;justify-content:flex-start}#lb.zoom img{max-width:none;max-height:none;cursor:zoom-out}
+#lb .bot{display:flex;gap:10px;justify-content:center;align-items:center;padding:12px;flex-wrap:wrap}
+#lb .btn{font-size:15px;padding:9px 16px;color:#e8eaed;background:#262a32;border-color:#3a404b}
+#lb .primary{background:var(--acc2);border-color:var(--acc2);color:#fff;font-weight:650}#lb .warnb{background:var(--warn);border-color:var(--warn);color:#fff;font-weight:650}
+.nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.45);color:#fff;border:0;font-size:28px;width:48px;height:80px;cursor:pointer;border-radius:8px;z-index:3}.nav.l{left:8px}.nav.r{right:8px}
+.hint{color:#8b93a1;font-size:12px;text-align:center;padding-bottom:8px}kbd{background:#2b3039;border:1px solid #3a404b;border-radius:4px;padding:0 5px;font-size:11px;color:#ddd}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);opacity:0;background:#262a32;color:#fff;border:1px solid #3a404b;border-radius:10px;padding:10px 14px;z-index:60;display:flex;gap:14px;align-items:center;transition:.25s;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%);pointer-events:auto}#toast button{background:none;border:0;color:#fbbf24;font-weight:700;cursor:pointer;font-size:14px}
+</style></head><body>
+<header>
+  <h1>🗂 Blurry &amp; duplicates review</h1>
+  <div class="stat"><b id="nLeft">–</b> left to review · <b id="nKept">0</b> kept by you</div>
+  <div class="bar"><i id="prog"></i></div>
+  <div class="seg"><button id="vRev" class="on">To review</button><button id="vKept">Kept by me</button></div>
+  <div class="chips" id="chips"></div>
+  <select id="folderSel"></select>
+  <div class="right"><label class="stat">Size <input id="size" type="range" min="130" max="520" value="240"></label></div>
+</header>
+<main id="main"></main>
+<div id="lb">
+  <div class="top"><span class="t1" id="lbName"></span><span class="t2" id="lbInfo"></span><span style="margin-left:auto" class="t2" id="lbPos"></span><button class="btn" id="lbClose">✕ Close</button></div>
+  <div class="stage" id="stage"><button class="nav l" id="prev">‹</button><img id="lbImg" alt=""><button class="nav r" id="next">›</button></div>
+  <div class="bot">
+    <button class="btn" id="bPrev">← Prev</button>
+    <button class="btn" id="rotL" title="Rotate left (Shift+R)">⟲ Rotate</button>
+    <button class="btn primary" id="bKeep">✓ Keep this photo (K)</button>
+    <button class="btn warnb" id="bUndo" style="display:none">↩ Put back (K)</button>
+    <button class="btn" id="rotR" title="Rotate right (R)">Rotate ⟳</button>
+    <button class="btn" id="bNext">Next →</button>
+  </div>
+  <div class="hint"><kbd>←</kbd><kbd>→</kbd> browse · <kbd>K</kbd>/<kbd>Enter</kbd> keep · <kbd>R</kbd> rotate right · <kbd>Shift</kbd>+<kbd>R</kbd> rotate left · <kbd>Z</kbd> or click: 100% zoom · <kbd>U</kbd> undo · <kbd>Esc</kbd> close</div>
+</div>
+<div id="toast"><span id="tmsg"></span><button id="tundo">Undo</button></div>
+<script>
+const $=s=>document.querySelector(s);
+let items=[],view='rev',cat=null,folder='',undoStack=[],cur=-1,list=[],toastT;
+const CATS=[['Blurry','bl'],['Duplicates','du']];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const isRev=i=>view==='rev'?i.st==='pending':i.st==='kept';
+async function load(){
+  items=(await (await fetch('/api/items')).json()).items;
+  const fs=[...new Set(items.map(i=>i.folder))].sort();
+  $('#folderSel').innerHTML='<option value="">All folders ('+fs.length+')</option>'+fs.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join('');
+  render();
+}
+const visible=()=>items.filter(i=>isRev(i)&&(!cat||i.cat===cat)&&(!folder||i.folder===folder));
+function stats(){
+  const left=items.filter(i=>i.st==='pending').length,kept=items.filter(i=>i.st==='kept').length;
+  $('#nLeft').textContent=left;$('#nKept').textContent=kept;$('#prog').style.width=(100*(items.length-left)/Math.max(1,items.length))+'%';
+  const base=items.filter(i=>isRev(i)&&(!folder||i.folder===folder));
+  $('#chips').innerHTML=CATS.map(([c])=>`<button class="chip ${cat===c?'on':''}" data-c="${c}">${c}<small>${base.filter(i=>i.cat===c).length}</small></button>`).join('');
+  $('#vRev').classList.toggle('on',view==='rev');$('#vKept').classList.toggle('on',view==='kept');
+}
+function render(){
+  stats();list=visible();const m=$('#main');m.innerHTML='';
+  if(!list.length){m.innerHTML=`<div class="empty">${view==='rev'?'🎉 Nothing left to review here.':'You haven’t kept anything yet.'}</div>`;return}
+  let last=null,grid;
+  for(const it of list){
+    const key=it.folder+' / '+it.cat.toLowerCase();
+    if(key!==last){last=key;const n=list.filter(x=>x.folder+' / '+x.cat.toLowerCase()===key).length;
+      const h=document.createElement('div');h.className='fh';
+      h.innerHTML=`<h2>${esc(key)}</h2><span>${n} photo${n>1?'s':''}</span>`+(view==='rev'?`<button class="btn" data-keepall="${esc(key)}">Keep all ${n}</button>`:'');
+      m.appendChild(h);grid=document.createElement('div');grid.className='grid';m.appendChild(grid)}
+    grid.appendChild(card(it));
+  }
+}
+const src=(k,it)=>`/${k}/${it.id}?r=${it.rot}`;
+function card(it){
+  const d=document.createElement('div');d.className='card';d.dataset.id=it.id;
+  d.innerHTML=`<img class="im" loading="lazy" src="${src('thumb',it)}" alt="${esc(it.name)}">
+  <span class="badge ${it.cat==='Blurry'?'bl':'du'}">${it.cat}</span>
+  <button class="keep ${view==='kept'?'undo':''}">${view==='kept'?'↩ Put back':'✓ Keep'}</button>
+  <div class="rot"><button data-rot="-90" title="Rotate left">⟲</button><button data-rot="90" title="Rotate right">⟳</button></div>
+  <div class="meta"><div class="nm">${esc(it.name)}${it.files>1?' <span class="sub">+'+(it.files-1)+'</span>':''}</div><div class="sub">${esc(it.folder.split('/').slice(-1)[0])}</div></div>`;
+  return d;
+}
+async function post(path){return (await fetch(path,{method:'POST'})).json()}
+async function act(it,keep){const r=await post(`/api/${keep?'keep':'undo'}/${it.id}`);if(r.conflict)toast('A file with that name already exists in the target folder — not moved');if(!r.ok)return false;it.st=r.st;return true}
+async function doKeep(it,keep=true,fromLb=false){
+  if(!await act(it,keep))return;
+  undoStack.push({id:it.id,keep});
+  const el=document.querySelector(`.card[data-id="${it.id}"]`);
+  if(el){el.classList.add('gone');setTimeout(()=>{const g=el.parentElement;el.remove();cleanup(g)},250)}
+  stats();toast(keep?`Kept ${it.name} — moved up into its folder`:`${it.name} put back`,true);
+  if(fromLb){const n=list.findIndex(x=>x.id===it.id);list=list.filter(x=>x.id!==it.id);if(!list.length)closeLb();else show(Math.min(n,list.length-1))}
+}
+function cleanup(g){
+  if(g&&!g.children.length){const h=g.previousElementSibling;g.remove();h&&h.remove()}
+  else if(g){const h=g.previousElementSibling,n=g.children.length;h.querySelector('span').textContent=n+' photo'+(n>1?'s':'');const b=h.querySelector('[data-keepall]');if(b)b.textContent='Keep all '+n}
+  if(!document.querySelector('.card'))render();
+}
+async function undoLast(){
+  const u=undoStack.pop();if(!u)return toast('Nothing to undo');
+  const it=items[u.id];if(await act(it,!u.keep)){const lb=$('#lb').classList.contains('open');render();if(lb){if(!list.length)closeLb();else show(Math.max(0,list.findIndex(x=>x.id===it.id)))}toast('Undone: '+it.name)}
+}
+async function rotate(it,deg){
+  const r=await post(`/api/rot/${it.id}/${deg}`);if(!r.ok)return;it.rot=r.rot;
+  const el=document.querySelector(`.card[data-id="${it.id}"] .im`);if(el)el.src=src('thumb',it);
+  if($('#lb').classList.contains('open')&&list[cur]&&list[cur].id===it.id)show(cur,true);
+}
+function toast(msg,undo){$('#tmsg').textContent=msg;$('#tundo').style.display=undo?'':'none';$('#toast').classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>$('#toast').classList.remove('show'),5000)}
+$('#tundo').onclick=undoLast;
+function show(i,keepZoom){
+  cur=i;const it=list[i];if(!it)return;
+  if(!keepZoom)$('#lb').classList.remove('zoom');
+  $('#lbImg').src=src('thumb',it);const big=new Image();big.onload=()=>{if(list[cur]&&list[cur].id===it.id)$('#lbImg').src=big.src};big.src=src('full',it);
+  $('#lbName').textContent=it.name;$('#lbInfo').textContent=`${it.folder} · ${it.cat}${it.rot?' · rotated '+it.rot+'°':''}`;
+  $('#lbPos').textContent=`${i+1} / ${list.length}`;
+  $('#bKeep').style.display=view==='rev'?'':'none';$('#bUndo').style.display=view==='kept'?'':'none';
+}
+function openLb(id){cur=list.findIndex(x=>x.id==id);$('#lb').classList.add('open');document.body.style.overflow='hidden';show(cur)}
+function closeLb(){$('#lb').classList.remove('open');document.body.style.overflow=''}
+const step=d=>{if(list.length)show((cur+d+list.length)%list.length)};
+$('#lbClose').onclick=closeLb;$('#prev').onclick=$('#bPrev').onclick=()=>step(-1);$('#next').onclick=$('#bNext').onclick=()=>step(1);
+$('#bKeep').onclick=()=>doKeep(list[cur],true,true);$('#bUndo').onclick=()=>doKeep(list[cur],false,true);
+$('#rotL').onclick=()=>rotate(list[cur],-90);$('#rotR').onclick=()=>rotate(list[cur],90);
+$('#lbImg').onclick=()=>$('#lb').classList.toggle('zoom');
+document.addEventListener('keydown',e=>{
+  if(['SELECT','INPUT'].includes(e.target.tagName))return;
+  if($('#lb').classList.contains('open')){
+    if(e.key==='Escape')closeLb();else if(e.key==='ArrowRight')step(1);else if(e.key==='ArrowLeft')step(-1);
+    else if(['k','K','Enter'].includes(e.key)){e.preventDefault();doKeep(list[cur],view==='rev',true)}
+    else if(e.key==='r')rotate(list[cur],90);else if(e.key==='R')rotate(list[cur],-90);
+    else if(e.key==='z'||e.key==='Z')$('#lb').classList.toggle('zoom');else if(e.key==='u'||e.key==='U')undoLast();
+  }else if((e.key==='z'&&(e.ctrlKey||e.metaKey))||e.key==='u')undoLast();
+});
+$('#main').addEventListener('click',e=>{
+  const ka=e.target.closest('[data-keepall]');
+  if(ka){const key=ka.dataset.keepall,grp=list.filter(x=>x.folder+' / '+x.cat.toLowerCase()===key);
+    if(confirm(`Keep ALL ${grp.length} photos from\n${key}\nand move them up into the folder?`))(async()=>{for(const it of grp)await doKeep(it,true)})();return}
+  const c=e.target.closest('.card');if(!c)return;const it=items[c.dataset.id];
+  const r=e.target.closest('[data-rot]');if(r)return rotate(it,+r.dataset.rot);
+  if(e.target.closest('.keep'))doKeep(it,view==='rev');else openLb(it.id);
+});
+$('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;cat=cat===b.dataset.c?null:b.dataset.c;render()};
+$('#vRev').onclick=()=>{view='rev';render()};$('#vKept').onclick=()=>{view='kept';render()};
+$('#folderSel').onchange=e=>{folder=e.target.value;render()};
+$('#size').oninput=e=>document.documentElement.style.setProperty('--ts',e.target.value+'px');
+load();
+</script></body></html>
